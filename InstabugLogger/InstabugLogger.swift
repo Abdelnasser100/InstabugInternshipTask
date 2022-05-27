@@ -38,41 +38,34 @@ public class InstabugLogger {
     #warning("Implement the following")
     public func log(_ level: Int16, message: String) {
         
-           let context = persistentContainer.viewContext
-                let contact = NSEntityDescription.insertNewObject(forEntityName: "Logging", into: context) as! Logging
+        let context = persistentContainer.viewContext
+        let contact = NSEntityDescription.insertNewObject(forEntityName: "Logging", into: context) as! Logging
         let fetchRequest = NSFetchRequest<Logging>(entityName: "Logging")
         
+        contact.level = level
+        contact.message = message
         
-            contact.level = level
-            contact.message = message
-        
-        if message.count > 1000{
         do{
             let persons = try context.fetch(fetchRequest)
             for (index,person) in persons.enumerated() {
-                context.delete(person)
-                
-                try context.save()
+                switch index {
+                case 0...1001 :
+                        try context.save()
+                default:
+                    context.delete(person)
+                    try context.save()
+                }
             }
         }catch{
             print(error)
         }
-            
-        }else {
-                do {
-                    try context.save()
-                    print("✅ Person saved succesfuly")
-                    
-                } catch let error {
-                    print("❌ Failed to create Person: \(error.localizedDescription)")
-                }
-        }
+    
+        
     }
 
+    
     // MARK: Fetch logs
     #warning("Implement the following")
-    
-    
     public func fetchAllLogs() -> Any {
         
         let context = persistentContainer.viewContext
@@ -80,21 +73,22 @@ public class InstabugLogger {
         let fetchRequest = NSFetchRequest<Logging>(entityName: "Logging")
                
          do{
-                   
             let persons = try context.fetch(fetchRequest)
                    
             for (index,person) in persons.enumerated() {
-                print("Person \(index): \(person.level) \(person.message ?? "N/A")")
-                    return person.message!
+               print("Person \(index): \(person.level) \(person.message ?? "N/A")")
+                return index
                    }
                    
             }catch let fetchErr {
                 print("❌ Failed to fetch Person:",fetchErr)
+                
             }
         fatalError("Not implemented")
-
     }
     
+    
+
     #warning("Implement the following")
     
     public func fetchAllLogs(completionHandler: (Any)->Void) {
